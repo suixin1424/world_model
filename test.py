@@ -71,7 +71,7 @@ def main():
         l2 = outputs['L2']
         miou = outputs['miou']
         for i in range(args.pred_times):
-            print(f'{i+1} s: {l2[i]:.4f}, mIoU: {miou[i]:.4f}')
+            print(f'{i+1}s: {l2[i]:.4f}, mIoU: {miou[i]:.4f}')
 
 if __name__ == '__main__':
     main()

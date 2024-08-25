@@ -22,12 +22,13 @@ class multi_step_L2:
         self.l2 = [0]*self.times
         self.count = 0
     def _after_step(self, traj_pred, traj_label):
+        #traj_pred: [b,9,2]
+        #traj_label: [b,9,2]
         self.count += 1
         for i in range(self.frames):
-            l2 = torch.sqrt((traj_pred[:,i] - traj_label[:,i])**2) #[b,2]
-            l2 = torch.sum(l2, dim=1) #[b]
-            l2 = torch.mean(l2) #[1]
-            self.l2_frame[i] += l2.item()
+            current_traj_pred = traj_pred[:,:i+1,:] # [b,i+1,2]
+            current_traj_label = traj_label[:,:i+1,:] # [b,i+1,2]
+            self.l2_frame[i] += torch.sqrt(((current_traj_pred - current_traj_label) ** 2).sum(-1)).sum().mean().item()
     def _after_epoch(self):
         for i in range(self.frames):
             self.l2_frame[i] /= self.count

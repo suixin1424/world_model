@@ -3,10 +3,10 @@ _base_ = [
 ]
 
 runner = dict(type='EpochBasedRunner', max_epochs=200)
-workflow = [('val', 1), ('train', 1)]
+workflow = [('train', 1), ('val', 1)]
 
 vqvae_path = '/home/zhuyiming/data2/world_model/workdir/vqvae/20240820_222226/best_miou.pth'
-workdir = '/home/zhuyiming/data2/world_model/workdir/occworld_test/'
+workdir = '/home/zhuyiming/data2/world_model/workdir/occworld/'
 predict_frames_len = 1
 seed = 3407
 log_interval = 10

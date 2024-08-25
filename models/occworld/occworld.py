@@ -1,4 +1,5 @@
 from copy import deepcopy
+import time
 from mmdet.models import HEADS
 import numpy as np
 import torch
@@ -179,6 +180,7 @@ class TransVQVAE(BaseModule):
         pose_input_ = data['pose'][:, :input_times*2].to(device)
         plan_traj = []
         occ_pred = []
+        start_time = time.time()
         for i in range(predict_times*2):
             frame_len = input_times*2 + i
             occ_input = torch.cat([occ_input_, occ_pred], dim=1) if len(occ_pred) > 0 else occ_input_
@@ -225,7 +227,11 @@ class TransVQVAE(BaseModule):
             else:
                 occ_rec = occ_rec[:, -1].unsqueeze(1)
                 occ_pred = torch.cat([occ_pred, occ_rec], dim=1)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        cost_time = cost_time / (predict_times*2)
         return {
             'plan_traj': plan_traj,
-            'occ_pred': occ_pred
+            'occ_pred': occ_pred,
+            'cost_time': cost_time
         }

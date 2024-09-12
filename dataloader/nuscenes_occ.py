@@ -49,6 +49,7 @@ class Nuscenes(Dataset):
     
     def __getitem__(self, idx):
         ''' Return the idx-th scene.'''
+
         scene_name = self.scene_names[idx]
         scene = self.scenes[scene_name]
         scene_len = len(scene)

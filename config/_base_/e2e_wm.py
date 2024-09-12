@@ -3,8 +3,10 @@ _dim_ = 16
 expansion = 8
 n_e_ = 512
 model = dict(
-    type = 'TransVQVAE',
+    type = 'e2e_wm',
     predict_frame_len=1,
+    h_occ = 16,
+    h_occ_encodered = 128,
     vqvae = dict(
         type = 'vqvae',
         encoder=dict(
@@ -45,17 +47,16 @@ model = dict(
             z_channels = base_channel * 2, ),
         rec_loss = dict(
             type = 'rec_loss',
-        )),
+        )
+    ),
     
     transformer=dict(
-        type = 'PlanUAutoRegTransformer',
+        type = 'OccTransformer',
         num_tokens=1,
         num_frames=9,
+        predict_frames_len=1,
         num_layers=2,
         img_shape=(base_channel*2,50,50),
-        pose_shape=(1,base_channel*2),
-        pose_attn_layers=2,
-        pose_output_channel=base_channel*2,
         tpe_dim=base_channel*2,
         channels=(base_channel*2, base_channel*4, base_channel*8),
         temporal_attn_layers=6,
@@ -65,17 +66,24 @@ model = dict(
     pose_encoder=dict(
         type = 'PoseEncoder',
         in_channels=5,
-        out_channels=base_channel*2,
+        out_channels=base_channel*8,
         num_layers=2,
         num_modes=3,
         num_fut_ts=1,
     ),
     pose_decoder=dict(
         type = 'PoseDecoder',
-        in_channels=base_channel*2,
+        in_channels=base_channel*8,
         num_layers=2,
         num_modes=3,
         num_fut_ts=1,
+    ),
+    plan_head=dict(
+        type = 'PlanHead',
+        idx_shape=(50,50),
+        in_channels=base_channel*2,
+        num_embeddings=n_e_,
+        embedding_dim=base_channel*8,
     ),
     loss=dict(
         type = 'multi_loss',

@@ -98,9 +98,11 @@ def multi_gpu_test(model, dataloader, cfg, start_times, pred_times):
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataloader))
     for i, data in enumerate(dataloader):
+        print(data.keys())
+        exit(0)
         with torch.no_grad():
             result = model.module.forward_test(data, input_times=3, predict_times=3, device=cfg.device)
-        
+
         #calculate miou
         occ_label = data['occs'][:, start_frames:pred_frames+start_frames].to(cfg.device)
         CalMeanIou_sem._after_step(result['occ_pred'], occ_label)
@@ -154,5 +156,9 @@ def multi_gpu_test(model, dataloader, cfg, start_times, pred_times):
 
     result = dict(L2=l2, miou=miou_times, iou=iou_times, fps=1/cost_time)
 
+
+
     return result
 
+def visualization(ego_traj):
+    pass

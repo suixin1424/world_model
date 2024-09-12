@@ -1,12 +1,12 @@
 _base_ = [
-    './_base_/occ_world.py',
+    './_base_/e2e_wm.py',
 ]
 
 runner = dict(type='EpochBasedRunner', max_epochs=200)
 workflow = [('train', 1), ('val', 1)]
 
 vqvae_path = '/home/zhuyiming/data2/world_model/workdir/vqvae/20240820_222226/best_miou.pth'
-workdir = '/home/zhuyiming/data2/world_model/workdir/occ_world/'
+workdir = '/home/zhuyiming/data2/world_model/workdir/e2e_wm/'
 predict_frames_len = 1
 seed = 3407
 log_interval = 10
@@ -18,12 +18,8 @@ freeze_dict = dict(
     vqvae = True,
 )
 
+
 frames = 16
-model = dict(
-    transformer=dict(
-        num_frames = frames-predict_frames_len
-    )
-)
 data_train = dict(
     type = 'Nuscenes',
     data_root = 'dataset/nuscenes/',
@@ -37,6 +33,14 @@ data_test = dict(
     frames = frames,
     test_mode = True,
     pkl_path = 'dataset/nuscenes_infos_val_temporal_v3_scene.pkl',
+)
+
+
+model = dict(
+    transformer=dict(
+        num_frames = frames-predict_frames_len,
+        predict_frames_len = predict_frames_len,
+    )
 )
 
 optimizer=dict(

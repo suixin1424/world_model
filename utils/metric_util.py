@@ -13,28 +13,48 @@ def get_nuScenes_label_name(label_mapping):
 class multi_step_L2:
     def __init__(self, times=3):
         self.times = times
-        self.frames = times*2
-        self.l2_frame = [0]*self.frames
         self.l2 = [0]*self.times
         self.count = 0
     def reset(self):
-        self.l2_frame = [0]*self.frames
         self.l2 = [0]*self.times
         self.count = 0
+    def compute_L2(self, trajs, gt_trajs):
+        '''
+        trajs: torch.Tensor (n_future, 2)
+        gt_trajs: torch.Tensor (n_future, 2)
+        '''
+        # return torch.sqrt(((trajs[:, :, :2] - gt_trajs[:, :, :2]) ** 2).sum(dim=-1))
+        # import pdb; pdb.set_trace()
+        pred_len = trajs.shape[0]
+        ade = float(
+            sum(
+                torch.sqrt(
+                    (trajs[i, 0] - gt_trajs[i, 0]) ** 2
+                    + (trajs[i, 1] - gt_trajs[i, 1]) ** 2
+                )
+                for i in range(pred_len)
+            )
+            / pred_len
+        )
+        
+        return ade
     def _after_step(self, traj_pred, traj_label):
         #traj_pred: [b,9,2]
         #traj_label: [b,9,2]
         self.count += 1
-        for i in range(self.frames):
-            current_traj_pred = traj_pred[:,:i+1,:] # [b,i+1,2]
-            current_traj_label = traj_label[:,:i+1,:] # [b,i+1,2]
-            self.l2_frame[i] += torch.sqrt(((current_traj_pred - current_traj_label) ** 2).sum(-1)).sum().mean().item()
-    def _after_epoch(self):
-        for i in range(self.frames):
-            self.l2_frame[i] /= self.count
+        traj_pred = torch.cumsum(traj_pred, dim=1)
+        traj_label = torch.cumsum(traj_label, dim=1)
         for i in range(self.times):
-            self.l2[i] = (self.l2_frame[i*2] + self.l2_frame[i*2+1])/2
-        return self.l2
+            frame = (i+1)*2
+            traj = traj_pred[:,:frame,:]
+            gt_traj = traj_label[:,:frame,:]
+            self.l2[i] += sum(
+                [self.compute_L2(traj[j], gt_traj[j]) for j in range(traj.shape[0])]
+            )/traj.shape[0]
+        
+    def _after_epoch(self):
+        l2 = [l/self.count for l in self.l2]
+        return l2
 
 
 
